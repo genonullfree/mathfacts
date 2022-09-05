@@ -52,16 +52,22 @@ fn main() -> Result<(), MFError> {
     }
 }
 
-fn get_ans() -> Result<usize, MFError> {
-    let mut resp = String::new();
-    stdin().read_line(&mut resp).unwrap();
+fn get_ans(question: String) -> Result<usize, MFError> {
+    loop {
+        print!("{}", question);
+        stdout().flush().unwrap();
 
-    // Strip the newline off
-    resp.pop();
+        let mut resp = String::new();
+        stdin().read_line(&mut resp).unwrap();
 
-    let a: usize = resp.parse()?;
+        // Strip the newline off
+        resp.pop();
 
-    Ok(a)
+        match resp.parse() {
+            Ok(a) => return Ok(a),
+            Err(_) => println!("Couldn't understand \"{}\", please try again.", resp),
+        }
+    }
 }
 
 fn multiply(args: &Args) -> Result<(), MFError> {
@@ -71,11 +77,10 @@ fn multiply(args: &Args) -> Result<(), MFError> {
         let a: usize = rand::random::<usize>() % args.max;
         let b: usize = rand::random::<usize>() % args.max;
 
-        print!("{})\n{} * {} = ", count, a, b);
-        stdout().flush().unwrap();
+        let question = format!("{})\n{} * {} = ", count, a, b);
 
         let now = Instant::now();
-        let guess = get_ans()?;
+        let guess = get_ans(question)?;
         let try_time = now.elapsed();
 
         if guess == a * b {
@@ -94,7 +99,21 @@ fn multiply(args: &Args) -> Result<(), MFError> {
         }
     }
 
-    println!("{:?}", ans);
+    print_score(&ans);
+
+    Ok(())
+}
+
+fn print_score(ans: &Answers) -> Result<(), MFError> {
+    println!(" =====");
+    println!(
+        "Score: {}%",
+        (ans.correct as f32 / ans.total as f32) * 100f32
+    );
+
+    println!("Correct: {}", ans.correct);
+    println!("Total questions: {}", ans.total);
+
     let mut avg: Duration = Duration::default();
     for i in ans.times.iter() {
         avg += *i;
@@ -102,7 +121,7 @@ fn multiply(args: &Args) -> Result<(), MFError> {
 
     avg /= ans.times.len() as u32;
 
-    println!("Average time: {:?}", avg);
+    println!("Average time per question: {:.3?}", avg);
 
     Ok(())
 }
