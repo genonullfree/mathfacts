@@ -21,17 +21,21 @@ struct Args {
 
     /// Largest number to possibly generate
     #[clap(short, long, default_value = "12")]
-    max: usize,
+    max: isize,
 
     /// Number of questions to ask
     #[clap(short, long, default_value = "10")]
-    number: usize,
+    number: isize,
+
+    /// Allow random to generate negative numbers
+    #[clap(long)]
+    negative: bool,
 }
 
 #[derive(Debug, Default)]
 struct Answers {
-    correct: usize,
-    total: usize,
+    correct: isize,
+    total: isize,
     times: Vec<Duration>,
 }
 
@@ -45,14 +49,10 @@ enum Command {
 fn main() -> Result<(), MFError> {
     let args = Args::parse();
 
-    match args.cmd {
-        Command::Multiply => multiply(&args),
-        Command::Add => Ok(()),
-        Command::Subtract => Ok(()),
-    }
+    execute_questions(&args)
 }
 
-fn get_ans(question: String) -> Result<usize, MFError> {
+fn get_ans(question: String) -> Result<isize, MFError> {
     loop {
         print!("{}", question);
         stdout().flush().unwrap();
@@ -70,20 +70,36 @@ fn get_ans(question: String) -> Result<usize, MFError> {
     }
 }
 
-fn multiply(args: &Args) -> Result<(), MFError> {
+fn execute_questions(args: &Args) -> Result<(), MFError> {
     let mut ans = Answers::default();
     let mut count = 1;
     loop {
-        let a: usize = rand::random::<usize>() % args.max;
-        let b: usize = rand::random::<usize>() % args.max;
+        let mut a: isize = rand::random::<isize>() % args.max;
+        let mut b: isize = rand::random::<isize>() % args.max;
+        if !args.negative {
+            a = isize::abs(a);
+            b = isize::abs(b);
+        }
 
-        let question = format!("{})\n{} * {} = ", count, a, b);
+        let op = match args.cmd {
+            Command::Multiply => "*",
+            Command::Add => "+",
+            Command::Subtract => "-",
+        };
+
+        let question = format!("{})\n{} {} {} = ", count, a, op, b);
 
         let now = Instant::now();
         let guess = get_ans(question)?;
         let try_time = now.elapsed();
 
-        if guess == a * b {
+        let calc = match args.cmd {
+            Command::Multiply => a * b,
+            Command::Add => a + b,
+            Command::Subtract => a - b,
+        };
+
+        if guess == calc {
             println!("great job!");
             ans.correct += 1;
         } else {
@@ -99,15 +115,13 @@ fn multiply(args: &Args) -> Result<(), MFError> {
         }
     }
 
-    print_score(&ans);
-
-    Ok(())
+    print_score(&ans)
 }
 
 fn print_score(ans: &Answers) -> Result<(), MFError> {
     println!(" =====");
     println!(
-        "Score: {}%",
+        "Score: {:.2}%",
         (ans.correct as f32 / ans.total as f32) * 100f32
     );
 
