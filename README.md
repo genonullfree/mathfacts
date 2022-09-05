@@ -2,7 +2,7 @@
 
 This package is to help practice common / simple math facts. I wrote it for my 8yo son to practice his addition, subtraction, and multiplication.
 
-At the end of the `number` of questions it will display a "Score" with the following info:
+At the end of the `number` of questions it will display a tally with the following info:
 - Score
 - Correct
 - Total questions
