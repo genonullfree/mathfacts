@@ -1,7 +1,7 @@
 use std::io::{self, stdin, stdout, Write};
+use std::mem;
 use std::num::ParseIntError;
 use std::time::{Duration, Instant};
-use std::mem;
 
 use chrono::Local;
 use clap::Parser;
@@ -32,6 +32,10 @@ struct Args {
     /// Allow random to generate negative numbers
     #[clap(long)]
     negative: bool,
+
+    /// Use over-under style instead of linear equation
+    #[clap(short, long)]
+    overunder: bool,
 }
 
 #[derive(Debug, Default)]
@@ -92,10 +96,14 @@ fn execute_questions(args: &Args) -> Result<(), MFError> {
                     mem::swap(&mut a, &mut b);
                 }
                 "-"
-            },
+            }
         };
 
-        let question = format!("{})\n{} {} {} = ", count, a, op, b);
+        let question = if args.overunder {
+            format!("{})\n\t {:3}\n\t{}{:3}\n\t----\n\t= ", count, a, op, b)
+        } else {
+            format!("{})\n{} {} {} = ", count, a, op, b)
+        };
 
         let now = Instant::now();
         let guess = get_ans(question)?;
