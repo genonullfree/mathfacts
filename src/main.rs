@@ -75,15 +75,15 @@ fn execute_questions(args: &Args) -> Result<(), MFError> {
     let mut ans = Answers::default();
     let mut count = 1;
     loop {
-        let mut a: isize = rand::random::<isize>() % args.max;
-        let mut b: isize = rand::random::<isize>() % args.max;
+        let mut a: isize = rand::random::<isize>() % (args.max + 1);
+        let mut b: isize = rand::random::<isize>() % (args.max + 1);
         if !args.negative {
             a = isize::abs(a);
             b = isize::abs(b);
         }
 
         let op = match args.cmd {
-            Command::Multiply => "*",
+            Command::Multiply => "x",
             Command::Add => "+",
             Command::Subtract => "-",
         };
@@ -136,8 +136,11 @@ fn print_score(ans: &Answers) -> Result<(), MFError> {
 
     let avg = total / ans.times.len() as u32;
 
+    let min = total.as_secs() / 60;
+    let sec = total.as_secs() % 60;
+
     println!("Average time per question: {:.3?}", avg);
-    println!("Total time: {:.3?}", total);
+    println!("Total time: {}m {}s", min, sec);
 
     Ok(())
 }
