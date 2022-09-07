@@ -1,6 +1,7 @@
 use std::io::{self, stdin, stdout, Write};
 use std::num::ParseIntError;
 use std::time::{Duration, Instant};
+use std::mem;
 
 use chrono::Local;
 use clap::Parser;
@@ -85,7 +86,13 @@ fn execute_questions(args: &Args) -> Result<(), MFError> {
         let op = match args.cmd {
             Command::Multiply => "x",
             Command::Add => "+",
-            Command::Subtract => "-",
+            Command::Subtract => {
+                // Always subtract the smaller from the larger value
+                if a < b {
+                    mem::swap(&mut a, &mut b);
+                }
+                "-"
+            },
         };
 
         let question = format!("{})\n{} {} {} = ", count, a, op, b);
