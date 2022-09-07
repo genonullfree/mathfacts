@@ -2,6 +2,7 @@ use std::io::{self, stdin, stdout, Write};
 use std::num::ParseIntError;
 use std::time::{Duration, Instant};
 
+use chrono::Local;
 use clap::Parser;
 use thiserror::Error;
 
@@ -119,7 +120,7 @@ fn execute_questions(args: &Args) -> Result<(), MFError> {
 }
 
 fn print_score(ans: &Answers) -> Result<(), MFError> {
-    println!(" =====");
+    println!(" ===== {} =====", Local::now());
     println!(
         "Score: {:.2}%",
         (ans.correct as f32 / ans.total as f32) * 100f32
@@ -128,14 +129,15 @@ fn print_score(ans: &Answers) -> Result<(), MFError> {
     println!("Correct: {}", ans.correct);
     println!("Total questions: {}", ans.total);
 
-    let mut avg: Duration = Duration::default();
+    let mut total: Duration = Duration::default();
     for i in ans.times.iter() {
-        avg += *i;
+        total += *i;
     }
 
-    avg /= ans.times.len() as u32;
+    let avg = total / ans.times.len() as u32;
 
     println!("Average time per question: {:.3?}", avg);
+    println!("Total time: {:.3?}", total);
 
     Ok(())
 }
